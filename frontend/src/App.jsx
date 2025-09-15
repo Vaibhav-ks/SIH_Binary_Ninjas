@@ -14,21 +14,38 @@ export default function App() {
       },
     },
     classrooms: [
-      { id: 'Room-101' },
-      { id: 'Room-102' },
+      { id: 'GS 4' },
+      { id: 'GS 5' },
+      { id: 'GS 6' },
+      { id: 'GS 7' },
     ],
     faculties: [
       { id: 'F01', subjects: ['Data Structures', 'Algorithms'], unavailable_slots: [] },
       { id: 'F02', subjects: ['Mathematics'], unavailable_slots: [] },
+      { id: 'F03', subjects: ['OOPs'], unavailable_slots: [] },
+      { id: 'F04', subjects: ['CA'], unavailable_slots: [] },
     ],
     batches: [
       {
-        name: 'CSE-1A',
+        name: 'CSE-A',
         max_classes_per_day: 6,
         subjects: [
           { name: 'Data Structures', classes_per_week: 4 },
           { name: 'Algorithms', classes_per_week: 3 },
           { name: 'Mathematics', classes_per_week: 2 },
+          { name: 'OOPs', classes_per_week: 3 },
+          { name: 'CA', classes_per_week: 4 },
+        ],
+      },
+      {
+        name: 'CSE-B',
+        max_classes_per_day: 6,
+        subjects: [
+          { name: 'Data Structures', classes_per_week: 4 },
+          { name: 'Algorithms', classes_per_week: 3 },
+          { name: 'Mathematics', classes_per_week: 2 },
+          { name: 'OOPs', classes_per_week: 3 },
+          { name: 'CA', classes_per_week: 4 },
         ],
       },
     ],

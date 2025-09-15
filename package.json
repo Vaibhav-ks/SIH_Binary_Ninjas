@@ -1,0 +1,12 @@
+{
+  "name": "schedulify",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "backend": "cd backend && node server.js",
+    "solver": "cd backend && python solver_service.py",
+    "frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+  }
+}
