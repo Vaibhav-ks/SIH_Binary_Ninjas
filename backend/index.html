@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 960px;
+        }
+        .btn-primary {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .section-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .collapsible-header {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="container mx-auto p-8 bg-gray-50 rounded-lg shadow-xl border border-gray-200">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Timetable Generator</h1>
+        <p class="text-center text-gray-600 mb-8">Enter your data and generate a perfectly optimized timetable using our microservice architecture.</p>
+
+        <form id="timetableForm" class="space-y-6">
+
+            <!-- Settings Section -->
+            <div class="section-card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Settings</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="working_days" class="block text-sm font-medium text-gray-700">Working Days</label>
+                        <input type="number" id="working_days" name="working_days" value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="hours_per_day" class="block text-sm font-medium text-gray-700">Hours Per Day</label>
+                        <input type="number" id="hours_per_day" name="hours_per_day" value="8" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="start_hour" class="block text-sm font-medium text-gray-700">Start Hour</label>
+                        <input type="number" id="start_hour" name="start_hour" value="9" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h3 class="text-xl font-medium text-gray-700 mb-2">Soft Constraint Penalties</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="batch_gap" class="block text-sm font-medium text-gray-700">Batch Gap Penalty</label>
+                            <input type="number" id="batch_gap" name="batch_gap" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="subject_spread" class="block text-sm font-medium text-gray-700">Subject Spread Penalty</label>
+                            <input type="number" id="subject_spread" name="subject_spread" value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="max_contiguous" class="block text-sm font-medium text-gray-700">Max Contiguous Penalty</label>
+                            <input type="number" id="max_contiguous" name="max_contiguous" value="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batches Section -->
+            <div class="section-card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Batches</h2>
+                <div id="batchesContainer" class="space-y-4">
+                    <!-- Dynamic batch inputs will be added here -->
+                    <div class="batch-card p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-medium">Batch 1</h3>
+                            <button type="button" class="remove-batch text-red-500 hover:text-red-700 text-sm">Remove</button>
+                        </div>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600">Name</label>
+                                <input type="text" value="CSE 2025" class="batch-name mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600">Max Classes/Day</label>
+                                <input type="number" value="6" class="batch-max-classes mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                            <div class="space-y-2 subjects-container">
+                                <div class="subject-card p-2 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <label class="block text-xs font-medium text-gray-600">Subject Name</label>
+                                        <input type="text" value="Data Structures" class="subject-name mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                        <label class="block text-xs font-medium text-gray-600">Classes/Week</label>
+                                        <input type="number" value="4" class="subject-classes-per-week mt-1 block w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                        <button type="button" class="remove-subject text-red-500 hover:text-red-700 text-sm ml-2">Remove</button>
+                                    </div>
+                                </div>
+                                <div class="subject-card p-2 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <label class="block text-xs font-medium text-gray-600">Subject Name</label>
+                                        <input type="text" value="Algorithms" class="subject-name mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                        <label class="block text-xs font-medium text-gray-600">Classes/Week</label>
+                                        <input type="number" value="3" class="subject-classes-per-week mt-1 block w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                        <button type="button" class="remove-subject text-red-500 hover:text-red-700 text-sm ml-2">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="add-subject-btn mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Add Subject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="addBatchBtn" class="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Add Batch
+                </button>
+            </div>
+
+            <!-- Faculties Section -->
+            <div class="section-card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Faculties</h2>
+                <div id="facultiesContainer" class="space-y-4">
+                    <!-- Dynamic faculty inputs will be added here -->
+                    <div class="faculty-card p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-medium">Faculty 1</h3>
+                            <button type="button" class="remove-faculty text-red-500 hover:text-red-700 text-sm">Remove</button>
+                        </div>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600">ID</label>
+                                <input type="text" value="F01" class="faculty-id mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600">Subjects (comma-separated)</label>
+                                <input type="text" value="Data Structures,Algorithms" class="faculty-subjects mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                            <div class="space-y-2 unavailable-slots-container">
+                                <!-- Dynamic unavailable slots -->
+                                <div class="unavailable-slot p-2 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <label class="block text-xs font-medium text-gray-600">Day (0-4)</label>
+                                        <input type="number" value="2" class="slot-day mt-1 w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                        <label class="block text-xs font-medium text-gray-600">Hour (9-16)</label>
+                                        <input type="number" value="12" class="slot-hour mt-1 w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                        <button type="button" class="remove-slot text-red-500 hover:text-red-700 text-sm ml-2">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="add-slot-btn mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Add Unavailable Slot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="addFacultyBtn" class="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Add Faculty
+                </button>
+            </div>
+
+            <!-- Classrooms Section -->
+            <div class="section-card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Classrooms</h2>
+                <div id="classroomsContainer" class="space-y-4">
+                    <!-- Dynamic classroom inputs will be added here -->
+                    <div class="classroom-card p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-medium">Classroom 1</h3>
+                            <button type="button" class="remove-classroom text-red-500 hover:text-red-700 text-sm">Remove</button>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">ID</label>
+                            <input type="text" value="Room-101" class="classroom-id mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        </div>
+                    </div>
+                    <div class="classroom-card p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-medium">Classroom 2</h3>
+                            <button type="button" class="remove-classroom text-red-500 hover:text-red-700 text-sm">Remove</button>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">ID</label>
+                            <input type="text" value="Room-102" class="classroom-id mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="addClassroomBtn" class="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Add Classroom
+                </button>
+            </div>
+
+            <button type="submit" id="generateBtn" class="w-full btn-primary bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow-lg transition-transform transform">
+                Generate Timetable
+            </button>
+        </form>
+
+        <!-- Loading and Status Message -->
+        <div id="statusMessage" class="mt-6 text-center text-lg font-semibold text-gray-700 hidden">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating timetable... this may take up to 30 seconds.
+        </div>
+        
+        <!-- Timetable Display Section -->
+        <div id="timetableResult" class="mt-8 section-card p-6 hidden">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Generated Timetable</h2>
+            <div id="timetableDisplay" class="overflow-x-auto">
+                <!-- Timetable table will be inserted here -->
+            </div>
+            <button id="closeBtn" class="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition-transform transform btn-primary">
+                Close Timetable
+            </button>
+        </div>
+
+        <div id="messageBox" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+                <p id="messageText" class="text-lg font-medium text-gray-800 mb-4"></p>
+                <button id="messageOkBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-md">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use a function to avoid global scope pollution
+        function initTimetableApp() {
+            const form = document.getElementById('timetableForm');
+            const statusMessage = document.getElementById('statusMessage');
+            const resultSection = document.getElementById('timetableResult');
+            const timetableDisplay = document.getElementById('timetableDisplay');
+            const generateBtn = document.getElementById('generateBtn');
+            const closeBtn = document.getElementById('closeBtn');
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const messageOkBtn = document.getElementById('messageOkBtn');
+
+            const API_URL = 'http://localhost:3000/generate-timetable';
+
+            // Utility function to show a message box
+            function showMessageBox(message) {
+                messageText.textContent = message;
+                messageBox.classList.remove('hidden');
+            }
+
+            messageOkBtn.addEventListener('click', () => {
+                messageBox.classList.add('hidden');
+            });
+
+            // Handle adding/removing dynamic sections
+            function setupDynamicListeners() {
+                document.querySelectorAll('.add-subject-btn').forEach(btn => {
+                    btn.onclick = () => {
+                        const subjectsContainer = btn.closest('.space-y-2').querySelector('.subjects-container');
+                        const newSubject = document.createElement('div');
+                        newSubject.classList.add('subject-card', 'p-2', 'border', 'border-gray-200', 'rounded-lg');
+                        newSubject.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-medium text-gray-600">Subject Name</label>
+                                <input type="text" placeholder="e.g., Physics" class="subject-name mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                <label class="block text-xs font-medium text-gray-600">Classes/Week</label>
+                                <input type="number" value="1" class="subject-classes-per-week mt-1 block w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                <button type="button" class="remove-subject text-red-500 hover:text-red-700 text-sm ml-2">Remove</button>
+                            </div>
+                        `;
+                        subjectsContainer.appendChild(newSubject);
+                        setupDynamicListeners();
+                    };
+                });
+
+                document.querySelectorAll('.add-slot-btn').forEach(btn => {
+                    btn.onclick = () => {
+                        const slotsContainer = btn.closest('.space-y-2').querySelector('.unavailable-slots-container');
+                        const newSlot = document.createElement('div');
+                        newSlot.classList.add('unavailable-slot', 'p-2', 'border', 'border-gray-200', 'rounded-lg');
+                        newSlot.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-medium text-gray-600">Day (0-4)</label>
+                                <input type="number" value="0" class="slot-day mt-1 w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                <label class="block text-xs font-medium text-gray-600">Hour (9-16)</label>
+                                <input type="number" value="9" class="slot-hour mt-1 w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                <button type="button" class="remove-slot text-red-500 hover:text-red-700 text-sm ml-2">Remove</button>
+                            </div>
+                        `;
+                        slotsContainer.appendChild(newSlot);
+                        setupDynamicListeners();
+                    };
+                });
+                
+                document.querySelectorAll('.remove-batch').forEach(btn => {
+                    btn.onclick = (event) => {
+                        event.target.closest('.batch-card').remove();
+                    };
+                });
+                document.querySelectorAll('.remove-subject').forEach(btn => {
+                    btn.onclick = (event) => {
+                        event.target.closest('.subject-card').remove();
+                    };
+                });
+                document.querySelectorAll('.remove-faculty').forEach(btn => {
+                    btn.onclick = (event) => {
+                        event.target.closest('.faculty-card').remove();
+                    };
+                });
+                document.querySelectorAll('.remove-slot').forEach(btn => {
+                    btn.onclick = (event) => {
+                        event.target.closest('.unavailable-slot').remove();
+                    };
+                });
+                document.querySelectorAll('.remove-classroom').forEach(btn => {
+                    btn.onclick = (event) => {
+                        event.target.closest('.classroom-card').remove();
+                    };
+                });
+
+            }
+
+            document.getElementById('addBatchBtn').addEventListener('click', () => {
+                const batchesContainer = document.getElementById('batchesContainer');
+                const newBatch = document.createElement('div');
+                newBatch.classList.add('batch-card', 'p-4', 'border', 'border-gray-200', 'rounded-lg');
+                newBatch.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-medium">New Batch</h3>
+                        <button type="button" class="remove-batch text-red-500 hover:text-red-700 text-sm">Remove</button>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">Name</label>
+                            <input type="text" placeholder="e.g., CSE 2026" class="batch-name mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">Max Classes/Day</label>
+                            <input type="number" value="6" class="batch-max-classes mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        </div>
+                        <div class="space-y-2 subjects-container">
+                            <div class="subject-card p-2 border border-gray-200 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-medium text-gray-600">Subject Name</label>
+                                    <input type="text" placeholder="e.g., Chemistry" class="subject-name mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                    <label class="block text-xs font-medium text-gray-600">Classes/Week</label>
+                                    <input type="number" value="1" class="subject-classes-per-week mt-1 block w-1/4 rounded-md border-gray-300 shadow-sm sm:text-sm">
+                                    <button type="button" class="remove-subject text-red-500 hover:text-red-700 text-sm ml-2">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="add-subject-btn mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Add Subject
+                        </button>
+                    </div>
+                `;
+                batchesContainer.appendChild(newBatch);
+                setupDynamicListeners();
+            });
+
+            document.getElementById('addFacultyBtn').addEventListener('click', () => {
+                const facultiesContainer = document.getElementById('facultiesContainer');
+                const newFaculty = document.createElement('div');
+                newFaculty.classList.add('faculty-card', 'p-4', 'border', 'border-gray-200', 'rounded-lg');
+                newFaculty.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-medium">New Faculty</h3>
+                        <button type="button" class="remove-faculty text-red-500 hover:text-red-700 text-sm">Remove</button>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">ID</label>
+                            <input type="text" placeholder="e.g., F02" class="faculty-id mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">Subjects (comma-separated)</label>
+                            <input type="text" placeholder="e.g., Chemistry,Physics" class="faculty-subjects mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        </div>
+                        <div class="space-y-2 unavailable-slots-container">
+                        </div>
+                        <button type="button" class="add-slot-btn mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Add Unavailable Slot
+                        </button>
+                    </div>
+                `;
+                facultiesContainer.appendChild(newFaculty);
+                setupDynamicListeners();
+            });
+
+            document.getElementById('addClassroomBtn').addEventListener('click', () => {
+                const classroomsContainer = document.getElementById('classroomsContainer');
+                const newClassroom = document.createElement('div');
+                newClassroom.classList.add('classroom-card', 'p-4', 'border', 'border-gray-200', 'rounded-lg');
+                const classroomCount = document.querySelectorAll('.classroom-card').length + 1;
+                newClassroom.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-medium">Classroom ${classroomCount}</h3>
+                        <button type="button" class="remove-classroom text-red-500 hover:text-red-700 text-sm">Remove</button>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600">ID</label>
+                        <input type="text" placeholder="e.g., Room-10${classroomCount}" class="classroom-id mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                    </div>
+                `;
+                classroomsContainer.appendChild(newClassroom);
+                setupDynamicListeners();
+            });
+
+            // Initial setup of listeners
+            setupDynamicListeners();
+
+            // Function to gather all input data from the form
+            function gatherFormData() {
+                const settings = {
+                    working_days: parseInt(document.getElementById('working_days').value),
+                    hours_per_day: parseInt(document.getElementById('hours_per_day').value),
+                    start_hour: parseInt(document.getElementById('start_hour').value),
+                    penalties: {
+                        batch_gap: parseInt(document.getElementById('batch_gap').value),
+                        subject_spread: parseInt(document.getElementById('subject_spread').value),
+                        max_contiguous: parseInt(document.getElementById('max_contiguous').value)
+                    }
+                };
+
+                const batches = Array.from(document.querySelectorAll('#batchesContainer .batch-card')).map(batchCard => {
+                    const subjects = Array.from(batchCard.querySelectorAll('.subjects-container .subject-card')).map(subjectCard => {
+                        return {
+                            name: subjectCard.querySelector('.subject-name').value,
+                            classes_per_week: parseInt(subjectCard.querySelector('.subject-classes-per-week').value)
+                        };
+                    });
+                    return {
+                        name: batchCard.querySelector('.batch-name').value,
+                        max_classes_per_day: parseInt(batchCard.querySelector('.batch-max-classes').value),
+                        subjects: subjects
+                    };
+                });
+
+                const faculties = Array.from(document.querySelectorAll('#facultiesContainer .faculty-card')).map(facultyCard => {
+                    const unavailableSlots = Array.from(facultyCard.querySelectorAll('.unavailable-slots-container .unavailable-slot')).map(slotCard => {
+                        return {
+                            day: parseInt(slotCard.querySelector('.slot-day').value),
+                            hour: parseInt(slotCard.querySelector('.slot-hour').value)
+                        };
+                    });
+                    const subjectsStr = facultyCard.querySelector('.faculty-subjects').value;
+                    const subjects = subjectsStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                    return {
+                        id: facultyCard.querySelector('.faculty-id').value,
+                        subjects: subjects,
+                        unavailable_slots: unavailableSlots
+                    };
+                });
+
+                const classrooms = Array.from(document.querySelectorAll('#classroomsContainer .classroom-card')).map(classroomCard => {
+                    return {
+                        id: classroomCard.querySelector('.classroom-id').value
+                    };
+                });
+
+                return { settings, batches, faculties, classrooms };
+            }
+
+            // Function to display the timetable in a table format
+            function displayTimetable(solution) {
+                const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+                const hours = Array.from({ length: document.getElementById('hours_per_day').value }, (_, i) => i + parseInt(document.getElementById('start_hour').value));
+                const batches = [...new Set(solution.map(s => s.batch))].sort();
+
+                let tableHTML = `
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time/Day</th>
+                `;
+                
+                // Add day headers
+                days.forEach(day => {
+                    tableHTML += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${day}</th>`;
+                });
+                tableHTML += `</tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+
+                // Create a 2D array for easy lookup
+                const timetable = {};
+                batches.forEach(batch => {
+                    timetable[batch] = {};
+                    days.forEach((day, d_idx) => {
+                        timetable[batch][d_idx] = {};
+                        hours.forEach((hour, h_idx) => {
+                            timetable[batch][d_idx][hour] = null;
+                        });
+                    });
+                });
+
+                solution.forEach(slot => {
+                    timetable[slot.batch][slot.time_slot.day][slot.time_slot.hour] = slot;
+                });
+
+                // Add rows for each batch and hour
+                batches.forEach(batch => {
+                    tableHTML += `
+                        <tr class="bg-gray-100">
+                            <td colspan="${days.length + 1}" class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Batch: ${batch}</td>
+                        </tr>
+                    `;
+                    hours.forEach(hour => {
+                        tableHTML += `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${hour}:00 - ${hour+1}:00</td>
+                        `;
+                        days.forEach((day, d_idx) => {
+                            const slot = timetable[batch][d_idx][hour];
+                            if (slot) {
+                                tableHTML += `
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        <div class="font-bold">${slot.subject}</div>
+                                        <div>Faculty: ${slot.faculty}</div>
+                                        <div>Room: ${slot.classroom}</div>
+                                    </td>
+                                `;
+                            } else {
+                                tableHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">- Free -</td>`;
+                            }
+                        });
+                        tableHTML += `</tr>`;
+                    });
+                });
+
+                tableHTML += `</tbody></table>`;
+                timetableDisplay.innerHTML = tableHTML;
+            }
+
+            // Event Listener for form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Show loading message and disable button
+                statusMessage.classList.remove('hidden');
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating...
+                `;
+                resultSection.classList.add('hidden');
+                
+                const payload = gatherFormData();
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    // Hide status message and re-enable button
+                    statusMessage.classList.add('hidden');
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = 'Generate Timetable';
+
+                    if (response.ok) {
+                        displayTimetable(result);
+                        resultSection.classList.remove('hidden');
+                    } else {
+                        showMessageBox(result.error || "An unknown error occurred.");
+                    }
+
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    statusMessage.classList.add('hidden');
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = 'Generate Timetable';
+                    showMessageBox(`Network Error: The connection to the backend service failed. Please ensure both Node.js and Python services are running.`);
+                }
+            });
+
+            closeBtn.addEventListener('click', () => {
+                resultSection.classList.add('hidden');
+            });
+        }
+        
+        // Initialize the application on page load
+        window.onload = initTimetableApp;
+
+    </script>
+</body>
+</html>
