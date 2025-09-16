@@ -49,3 +49,44 @@ It leverages **Constraint Programming, Linear Programming, and Heuristic Approac
 - 🖥️ GitHub / GitLab  
 
 ---
+
+# Setup:
+
+## To install:
+
+***make sure you have python and npm installed on your system***
+
+in root directory run command:
+
+```pip install Flask flask-Cors ortools```
+
+in backend directory run command:
+
+```npm i```
+
+in frontend directory run command: 
+
+```npm i```
+
+---
+
+## To RUN:
+
+root directory:
+
+terminal 1:
+
+```npm run backend```
+
+terminal 2:
+
+```npm run solver```
+
+terminal 3:
+
+```npm run frontend```
+
+
+**then open the link ```http://localhost:5173/``` on your browser**
+
+***make sure you run all the above commands on three different terminal in root directory*** 
