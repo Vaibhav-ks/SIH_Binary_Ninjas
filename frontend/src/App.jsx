@@ -274,7 +274,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100 p-6">
       <h1 className="text-4xl font-bold mb-4 text-indigo-700 text-center">
-        Timetable Generator
+        Schedulify
       </h1>
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Config Panel */}
